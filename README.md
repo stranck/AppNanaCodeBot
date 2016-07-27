@@ -5,6 +5,6 @@
 telegram.me/AppNanaCodeBot (or search @AppNanaCodeBot)
 
 #Commands:
-/help view help page\n
-/github get the github link\n
+/help view help page
+/github get the github link
 /code get appnana code
