@@ -45,7 +45,7 @@ public class App{
         	    System.out.println(message.chat().id()+">"+message.text());}catch(NullPointerException e){}try{
         	    System.out.println(update.callbackQuery().message().chat().id()+">CallbackButton>"+
         	    		update.callbackQuery().data());
-        	    }catch(NullPointerException e){}try{        	    	
+        	    }catch(NullPointerException e){}try{
         	    if(message.text().equalsIgnoreCase("/start")&&first){
         	    	//System.out.println("start");
         	    	//System.out.println(exist("prop\\"+message.chat().id().toString()));
@@ -56,14 +56,15 @@ public class App{
         	    				+ "Are you a new user? Yes, I think, so can you send me your app nana friend code?\n"
         	    				+ "Thanks ;)"));
         	    		FileO.writer("0", "status\\" + message.chat().id().toString());
+        	    		FileO.writer("1", "index\\" + message.chat().id().toString());
         	    	} else FileO.writer("2", "status\\" + message.chat().id().toString());
         	    	first = false;
         	    }
+        	    String[] splited = FileO.reader("status\\" + message.chat().id().toString()).split("\\s+");
         	    if(FileO.reader("status\\" + message.chat().id().toString()).equals("0")&&first) {
         	    	//int index = FileO.addWrite("list", message.text());
         	    	//FileO.writer(String.valueOf(index), "prop\\"+message.chat().id().toString());
         	    	FileO.writer(message.text(), "prop\\"+message.chat().id().toString());
-        	    	FileO.writer("1", "index\\" + message.chat().id().toString());
         	    	System.out.println(message.chat().id()+"> Attempt to reg code.");
         	    	bot.execute(new SendMessage(message.chat().id().toString(),
         	    			"Is this ("+message.text()+") your exact AppNana code bot?"
@@ -74,7 +75,7 @@ public class App{
         	    					})));
         	    	FileO.writer("1", "status\\" + message.chat().id().toString());
         	    	first = false;}
-        	    if(message.text().equalsIgnoreCase("/github")&&first ){
+        	    if(message.text().equalsIgnoreCase("/github")&&first&&Integer.parseInt(splited[0])>1){
         	    	System.out.println(message.chat().id().toString()+"> Request github link.");
         	    	bot.execute(new SendMessage(message.chat().id().toString(),
         	    		"[Hope you enjoy watching how i am made :D](https://github.com/stranck/AppNanaCodeBot)")
@@ -97,15 +98,20 @@ public class App{
         	    		bot.execute(new SendMessage(message.chat().id().toString(), "Nessun codice rimanente"));}
     	    		first = false;
         	    }
-        	    String[] splited = FileO.reader("status\\" + message.chat().id().toString()).split("\\s+");
         	    if(splited[0].equals("3")&&first){
         	    	System.out.print(message.chat().id().toString()+"> Reciving feedback. ");
+    	    		String id = FileO.reader("code\\"+splited[1]);
+    	    		boolean good = false;
         	    	if(splited[1].equals(FileO.line("wait", 1))){
         	    		System.out.print("Code feedbacked ");
         	    		//FileO.addWrite(splited[1], "list");
         	    		//FileO.removeWrite("wait");
         	    		if(message.text().equalsIgnoreCase("bad")){
             	    		FileO.removeWrite("wait");
+            	    		bot.execute(new SendMessage(id, 
+            	    				"We noticed that your code is invalid. Please inserit your CORRECT code."));
+            	    		FileO.writer("0", "status\\" + id);
+            	    		FileO.newFile("ban\\"+id);
             	    		System.out.println("negative");
         	    		}
         	    		//String st = splited[1];
@@ -114,14 +120,16 @@ public class App{
             	    		FileO.addWrite("list", splited[1]);
             	    		FileO.removeWrite("wait");
             	    		System.out.println("positive");
+            	    		good = true;
         	    		}
         	    		//System.out.println("ot");
         	    	} else System.out.println("Code already feedbacked");
         	    	FileO.writer("2", "status\\"+message.chat().id().toString());
         	    	bot.execute(new SendMessage(message.chat().id().toString(), "Done!"));
     	    		first = false;
+	    			if(good)FileO.delater("ban\\"+id);
         	    }
-        	    if(message.text().equalsIgnoreCase("/help")&&first){
+        	    if(message.text().equalsIgnoreCase("/help")&&first&&Integer.parseInt(splited[0])>1){
         	    	System.out.println(message.chat().id().toString()+"> Request help");
         	    	bot.execute(new SendMessage(message.chat().id().toString(),
         	    			"For start getting the code of the users just type /code.\n"
@@ -135,6 +143,7 @@ public class App{
         	    }
         	    if(message.text().equalsIgnoreCase("/code")&&
         	    		FileO.reader("status\\" + message.chat().id().toString()).equals("2")&&first){
+        	    		if(exist("ban\\"+message.chat().id().toString())==false){
         	    		System.out.print(message.chat().id().toString()+"> Request code: ");
         	    		bot.execute(new SendMessage(message.chat().id().toString(),
         	    				"Inserit the code below in AppNana, then press the button below "
@@ -154,6 +163,11 @@ public class App{
         	    				})));System.out.println(FileO.line("list", i)+"; "+i); i++;
         	    			FileO.writer(String.valueOf(i), "index\\"+message.chat().id().toString());
         	    			FileO.writer("4 "+sr.message().messageId(),"status\\"+message.chat().id().toString());}
+        	    		} else {
+        	    			System.out.println(message.chat().id().toString()+"> Forbidden: softbanned.");
+        	    			bot.execute(new SendMessage(message.chat().id().toString(),
+        	    					"You are softbanned until we confirm your code."));
+        	    		}
         	    		first = false;
         	    }
         	    }catch(NullPointerException e){if (update.message() != null)e.printStackTrace();}try{
@@ -166,6 +180,7 @@ public class App{
         	    		int n = FileO.addWrite("wait", code) + FileO.countLines("list");
         	    		FileO.writer(String.valueOf(n),
         	    				"prop\\"+update.callbackQuery().message().chat().id().toString());
+        	    		FileO.writer(update.callbackQuery().message().chat().id().toString(), "code\\"+code);
         	    		bot.execute(new SendMessage(update.callbackQuery().message().chat().id().toString(),
         	    				"Thanks for your code! It will be share with other users :D\n"+
         	    		"For start getting the code of the users just type /code.\n"
